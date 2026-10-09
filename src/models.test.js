@@ -1,0 +1,7 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {parsePrompt,makeShape,reliefGeometry,binarySTL} from './models.js';
+function inspect(geometry){const buffer=binarySTL(geometry),view=new DataView(buffer),count=view.getUint32(80,true),edges=new Map();assert.equal(buffer.byteLength,84+50*count);assert.ok(count>0);for(let i=0;i<count;i++){const off=84+i*50,vs=[];for(let j=0;j<3;j++){const xyz=[];for(let k=0;k<3;k++){const v=view.getFloat32(off+12+j*12+k*4,true);assert.ok(Number.isFinite(v));xyz.push(Math.round(v*10000));}vs.push(xyz.join(','));}for(let j=0;j<3;j++){const a=vs[j],b=vs[(j+1)%3];const key=[a,b].sort().join('|');const old=edges.get(key)||{count:0,direction:0};old.count++;old.direction+=a<b?1:-1;edges.set(key,old);}}for(const e of edges.values()){assert.equal(e.count,2,'Each edge must belong to exactly two faces');assert.equal(e.direction,0,'Adjacent triangles must face consistently');}}
+test('prompt dimensions and unsupported requests',()=>{assert.deepEqual(parsePrompt('box 60 x 40 x 20 mm'),{shape:'box',width:60,depth:40,height:20});assert.throws(()=>parsePrompt('a realistic dragon'));assert.throws(()=>parsePrompt('box 1000 x 40 x 20'));});
+for(const shape of ['box','sphere','cylinder','vase'])test(`${shape} exports a closed STL with consistent faces`,()=>{inspect(makeShape({shape,width:60,depth:40,height:60}));});
+test('picture relief has sealed sides and base',()=>{inspect(reliefGeometry(new Float32Array([0,.5,1,.2,.3,.4,.9,.1,.8]),3,3,60,40,2,3));});

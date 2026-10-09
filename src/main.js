@@ -23,3 +23,6 @@ $('#saved').onclick=e=>{const load=e.target.closest('[data-load]'),del=e.target.
 $('#new').onclick=()=>{if(items.length&&!confirm('Start a new estimate? Save your current estimate first if you want to keep it.'))return;items=[];for(const k of ['customer','business','notes'])$('#'+k).value='';$('#tax').value=0;$('#discount').value=0;defaults();render();$('#status').textContent='New estimate started.';};
 $('#print').onclick=()=>{if(!items.length){$('#status').textContent='Add a product before printing.';return;}const s=snapshot(),t=totals(items,s.tax,s.discount);$('#print-view').innerHTML=`<h1>${esc(s.business||'Product estimate')}</h1><h2>Estimate ${esc(s.id)}</h2><p>Prepared for: ${esc(s.customer||'Customer')}<br>Valid until: ${esc(s.valid||'Not specified')}</p><table><thead><tr><th>Product</th><th>Quantity</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>${items.map(i=>`<tr><td>${esc(i.name)}</td><td>${i.quantity}</td><td>${money(i.price)}</td><td>${money(i.total)}</td></tr>`).join('')}</tbody></table><div class="print-totals"><p>Subtotal: ${money(t.subtotal)}</p><p>Discount: −${money(t.discount)}</p><p>Tax (${esc(s.tax)}%): ${money(t.tax)}</p><h2>Total: ${money(t.total)} USD</h2></div><p class="print-notes">${esc(s.notes)}</p>`;window.print();};
 preview();render();renderSaved();
+
+import {setupBuilder} from './builder.js';
+setupBuilder();
